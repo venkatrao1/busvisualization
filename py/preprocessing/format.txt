@@ -1,0 +1,39 @@
+gtfs: route is a group of trips, trips can be associated to shapes and stop times
+
+so our basic thing is a table of trips, we also have a table of routes and a table of shapes.
+
+route: metadata shared among trips
+  id, name = route long name, vehicle type ("train"/"bus"/"boat"), url, color, text_color
+
+trip: a single bus ride (multiple trips follow the same route)
+  route_id, days of week it runs (mon to sun), headsign, shape id
+  list of, for each stop along trip:
+    stop id, arrival time/departure time, shape points from this stop to next stop, cumulative distances.
+
+stop: a single bus stop, just has latlon
+
+shape: list of points, each point has coords and dist along
+
+we also need timezone of agency and a little more agency data
+
+thoughts:
+
+
+obsolete below
+----------------------------------------
+vehicle:
+  which route it runs on (from below)
+  real color (also autogenerate hue?)
+  list of points, each point has:
+    if stop: arrive/depart time, name???
+    all have location
+  frequency
+  type of vehicle (bus vs train)
+  info about route? (number/name, text color, etc?)
+
+route: dictionary? route id from 
+  polyline
+  coloring system: specify hue
+    if too many parallel routes, condense into one hue
+  maybe time range active?
+  figure out what to do when >>5 lines follow same path
