@@ -5,7 +5,7 @@ var old_date = null;
 var trips_today = null;
 var trips_rn = null;
 
-const MS_PER_FRAME = 50; // TODO: get it down to 16 through optimization
+const MS_PER_FRAME = 16; // TODO: get it down to 16 through optimization
 const FADE_TIME_SECONDS = 3;
 const SECONDS_PER_DAY = 86400;
 
