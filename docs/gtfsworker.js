@@ -5,17 +5,21 @@ var old_date = null;
 var trips_today = null;
 var trips_rn = null;
 
-const MS_PER_FRAME = 16; // TODO: get it down to 16 through optimization
+const INVERSE_FPS_CAP = 16; // must wait 16 ms before new frame rendered = 1000/60
 const FADE_TIME_SECONDS = 3;
 const SECONDS_PER_DAY = 86400;
 
 function handleMessage(msg){
   self.gtfs_json = msg.data;
-  setInterval(animate, MS_PER_FRAME);
+  requestAnimationFrame(animate);
 }
 
 function animate(){
   const new_date = curtime();
+  if(old_date && (new_date.getTime()-old_date.getTime() < INVERSE_FPS_CAP)){
+    requestAnimationFrame(animate);
+    return;
+  }
   const dayOfWeek = new_date.getDay();
   const secondOfDay = (new_date.getHours()*3600)+(new_date.getMinutes()*60)+new_date.getSeconds()+(new_date.getMilliseconds()/1000);
   const yesterday = (dayOfWeek||7)-1;
@@ -105,6 +109,7 @@ function animate(){
   });
 
   postMessage(msg);
+  requestAnimationFrame(animate);
 }
 
 const curtime = () => new Date(); // in global namespace so easy to allow spoofing date

@@ -1,0 +1,1 @@
+GitHub Pages only supports the root directory or the docs directory for hosting, hence why this folder is named "docs" and not something sane like "web".
