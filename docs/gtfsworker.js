@@ -82,7 +82,7 @@ function animate(){
           stops.departure_relative[ind], stops.dists_traveled[ind],
           stops.arrival_relative[ind+1], stops.dists_traveled[ind+1],
           relativeTime
-        ); // TODO: buses jump to their next stop, is this line why?
+        );
       }
       else distAlongShape = stops.dists_traveled[ind];
     }
@@ -137,5 +137,7 @@ function lerp(x1, y1, x2, y2, x3){ // find y3
 function getShapeColor(shape){
   return shape.color.match(/.{1,2}/g).map(h => parseInt(h, 16));
 }
+
+// TODO: add rhumb bearing for increased angle accuracy
 
 addEventListener('message', handleMessage);

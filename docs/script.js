@@ -35,6 +35,7 @@ function gotJSON(gtfs_json){
       keyboard:false
     },
     mapboxApiAccessToken: "pk.eyJ1IjoidmVua2F0cmFvMSIsImEiOiJjbDR6eG15a2gzNjBqM3Buc2U4emlmenRiIn0.0OgClKY8zHVpuJsCFVtRMQ",
+    mapStyle: "mapbox://styles/venkatrao1/cl5fm4vew001t15o5izxe2jxs",
     getTooltip: ({object}) => (object && object.tooltip),
     layers:[
       routeLayer
