@@ -61,24 +61,29 @@ function animate(){
     trips_rn = trips_today.filter((trip)=>(trip.begin_abs-FADE_TIME_SECONDS <= secondOfDay+60) && (trip.end_abs+FADE_TIME_SECONDS >= secondOfDay));
     console.debug(trips_rn.length +" trips this minute");
   }
+  
+  const len = trips_rn.length;
+  const binarymsg = {
+    vehicle_type: new Array(len),
+    color: new Uint8Array(4*len),
+    tooltip: new Array(len),
+    lonlat: new Float64Array(2*len),
+    orientation: new Float32Array(len)
+  };
 
-  const msg = trips_rn.map((trip)=>{
+  for(const [index, trip] of Object.entries(trips_rn)){
     // we need: position, angle, color/opacity, icon name, tooltip?
     const route = gtfs_json.routes[trip.route_id];
     const stops = trip.stops;
-    const ret = {
-      vehicle_type: route.vehicle_type,
-      color: [...getShapeColor(route), 255],
-      tooltip: route.name + ": " + trip.headsign
-    };
 
+    let opacity = 255;
     let distAlongShape;
     if(secondOfDay<trip.begin_abs){
-      ret.color[3] = Math.floor(255*(trip.begin_abs-secondOfDay)/FADE_TIME_SECONDS); 
+      opacity = Math.floor(255*(trip.begin_abs-secondOfDay)/FADE_TIME_SECONDS); 
       distAlongShape = stops.dists_traveled[0];
     }
     else if(secondOfDay>trip.end_abs){
-      ret.color[3] = Math.floor(255*(secondOfDay-trip.end_abs)/FADE_TIME_SECONDS);
+      opacity = Math.floor(255*(secondOfDay-trip.end_abs)/FADE_TIME_SECONDS);
       distAlongShape = stops.dists_traveled[stops.dists_traveled.length-1];
     }
     else{
@@ -100,7 +105,7 @@ function animate(){
     const ind = segBinarySearch(shape.pt_dists, distAlongShape);
     const coordInd = ind << 1; // the coordinates are packed into lon,lat array
     // interpolate position and infer orientation from cur segment
-    ret.lonlat = [
+    const lonlat = [
       lerp(
         shape.pt_dists[ind], shape.pt_coords[coordInd],
         shape.pt_dists[ind+1], shape.pt_coords[coordInd+2],
@@ -112,11 +117,15 @@ function animate(){
         distAlongShape
       )
     ];
-    ret.orientation = rhumbBearing(shape.pt_coords.slice(coordInd, coordInd+4));
-    return ret;
-  });
 
-  postMessage(msg);
+    binarymsg.vehicle_type[index] = route.vehicle_type;
+    binarymsg.tooltip[index] = route.name + ": " + trip.headsign;
+    binarymsg.color.set([...getShapeColor(route), opacity], 4*index);
+    binarymsg.lonlat.set(lonlat, 2*index);
+    binarymsg.orientation[index] = rhumbBearing(shape.pt_coords.subarray(coordInd, coordInd+4));
+  }
+
+  postMessage(binarymsg, [binarymsg.color.buffer, binarymsg.lonlat.buffer, binarymsg.orientation.buffer]);
   requestAnimationFrame(animate);
 }
 

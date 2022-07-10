@@ -1,6 +1,7 @@
 'use strict';
 
 var gtfsworker = null;
+var tooltips = null;
 
 // TODO: add train icon (and maybe boat)
 const ICON_MAPPING = {
@@ -36,7 +37,7 @@ function gotJSON(gtfs_json){
     },
     mapboxApiAccessToken: "pk.eyJ1IjoidmVua2F0cmFvMSIsImEiOiJjbDR6eG15a2gzNjBqM3Buc2U4emlmenRiIn0.0OgClKY8zHVpuJsCFVtRMQ",
     mapStyle: "mapbox://styles/venkatrao1/cl5fm4vew001t15o5izxe2jxs",
-    getTooltip: ({object}) => (object && object.tooltip),
+    getTooltip: ({index}) => (index && tooltips && tooltips[index]),
     layers:[
       routeLayer
     ]
@@ -53,19 +54,25 @@ function getShapeColor(shape){
 }
 
 function handleWorkerMessage(msg){
+  const bindata = msg.data;
+  tooltips = bindata.tooltip;
   const vehicleLayer = new deck.IconLayer({
     id: 'vehicle-layer',
-    data: msg.data,
+    data: {
+      length: bindata.vehicle_type.length,
+      attributes: {
+        getPosition: {value: bindata.lonlat, size:2},
+        getColor: {value:bindata.color, size:4},
+        getAngle: {value:bindata.orientation, size:1},
+      }
+    },
     pickable: true,
     iconAtlas: 'bus.png',
     iconMapping: ICON_MAPPING,
-    getIcon: d => 'marker',
+    getIcon: idx => 'marker',
     sizeUnits: "meters",
     getSize: 20,
     sizeMinPixels: 10,
-    getPosition: d => d.lonlat,
-    getColor: d => d.color,
-    getAngle: d => d.orientation,
   });
   deckgl.setProps({layers:[routeLayer, vehicleLayer]});
 }
