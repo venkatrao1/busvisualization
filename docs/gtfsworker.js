@@ -79,11 +79,15 @@ function animate(){
     let opacity = 255;
     let distAlongShape;
     if(secondOfDay<trip.begin_abs){
-      opacity = Math.floor(255*(trip.begin_abs-secondOfDay)/FADE_TIME_SECONDS); 
+      opacity = Math.floor(255*(trip.begin_abs-secondOfDay)/FADE_TIME_SECONDS);
+      if(opacity < 0) opacity = 0;
+      else if(opacity > 255) opacity = 255;
       distAlongShape = stops.dists_traveled[0];
     }
     else if(secondOfDay>trip.end_abs){
       opacity = Math.floor(255*(secondOfDay-trip.end_abs)/FADE_TIME_SECONDS);
+      if(opacity < 0) opacity = 0;
+      else if(opacity > 255) opacity = 255;
       distAlongShape = stops.dists_traveled[stops.dists_traveled.length-1];
     }
     else{
