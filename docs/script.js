@@ -2,12 +2,12 @@
 
 var gtfsworker = null;
 
+// TODO: add train icon (and maybe boat)
 const ICON_MAPPING = {
   marker: {x: 0, y: 0, width: 128, height: 128, mask: true}
 };
 
 function gotJSON(gtfs_json){
-  self.gtfs_json = gtfs_json;
   self.routeLayer = new deck.PathLayer({
     id:"route-layer",
     data: Object.values(gtfs_json.shapes),
@@ -53,7 +53,7 @@ function getShapeColor(shape){
 }
 
 function handleWorkerMessage(msg){
-  self.vehicleLayer = new deck.IconLayer({
+  const vehicleLayer = new deck.IconLayer({
     id: 'vehicle-layer',
     data: msg.data,
     pickable: true,

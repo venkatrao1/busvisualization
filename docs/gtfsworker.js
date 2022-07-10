@@ -11,6 +11,16 @@ const SECONDS_PER_DAY = 86400;
 
 function handleMessage(msg){
   self.gtfs_json = msg.data;
+  // reduce memory a bit
+  for(const [shape_id, shape] of Object.entries(gtfs_json.shapes)){
+    shape.pt_coords = Float64Array.from(shape.pt_coords);
+    shape.pt_dists = Float64Array.from(shape.pt_dists);
+  }
+  for(const [trip_id, {stops}] of Object.entries(gtfs_json.trips)){
+    stops.arrival_relative = Uint32Array.from(stops.arrival_relative);
+    stops.departure_relative = Uint32Array.from(stops.departure_relative);
+    stops.dists_traveled = Float64Array.from(stops.dists_traveled);
+  }
   requestAnimationFrame(animate);
 }
 
@@ -58,18 +68,17 @@ function animate(){
     const stops = trip.stops;
     const ret = {
       vehicle_type: route.vehicle_type,
-      color: getShapeColor(route),
+      color: [...getShapeColor(route), 255],
       tooltip: route.name + ": " + trip.headsign
     };
 
     let distAlongShape;
-    let opacity = 255; // default, will apply to 99% of trips anyway
     if(secondOfDay<trip.begin_abs){
-      opacity = Math.floor(255*(trip.begin_abs-secondOfDay)/FADE_TIME_SECONDS); 
+      ret.color[3] = Math.floor(255*(trip.begin_abs-secondOfDay)/FADE_TIME_SECONDS); 
       distAlongShape = stops.dists_traveled[0];
     }
     else if(secondOfDay>trip.end_abs){
-      opacity = Math.floor(255*(secondOfDay-trip.end_abs)/FADE_TIME_SECONDS);
+      ret.color[3] = Math.floor(255*(secondOfDay-trip.end_abs)/FADE_TIME_SECONDS);
       distAlongShape = stops.dists_traveled[stops.dists_traveled.length-1];
     }
     else{
@@ -103,8 +112,7 @@ function animate(){
         distAlongShape
       )
     ];
-    ret.orientation = Math.atan2(shape.pt_coords[coordInd+2]-shape.pt_coords[coordInd], shape.pt_coords[coordInd+3]-shape.pt_coords[coordInd+1]) * -180/Math.PI;
-    ret.color.push(opacity);
+    ret.orientation = rhumbBearing(shape.pt_coords.slice(coordInd, coordInd+4));
     return ret;
   });
 
@@ -138,6 +146,15 @@ function getShapeColor(shape){
   return shape.color.match(/.{1,2}/g).map(h => parseInt(h, 16));
 }
 
-// TODO: add rhumb bearing for increased angle accuracy
+// gives angle from 0-360 based on real angle on mercator projection
+// adapted from https://github.com/chrisveness/geodesy/blob/master/latlon-spherical.js
+function rhumbBearing([lon1, lat1, lon2, lat2]){
+  let dLambda = (lon2-lon1);
+  if(dLambda > 180) dLambda -= 360;
+  else if(dLambda < -180) dLambda += 360;
+  dLambda *= Math.PI/180;
+  const dPhi = Math.log(Math.tan((lat2-90)*Math.PI/360)/Math.tan((lat1-90)*Math.PI/360));
+  return 180+Math.atan2(dLambda, dPhi)*180/Math.PI;
+}
 
 addEventListener('message', handleMessage);
