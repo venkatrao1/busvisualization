@@ -167,7 +167,7 @@ function rhumbBearing([lon1, lat1, lon2, lat2]){
   else if(dLambda < -180) dLambda += 360;
   dLambda *= Math.PI/180;
   const dPhi = Math.log(Math.tan((lat2-90)*Math.PI/360)/Math.tan((lat1-90)*Math.PI/360));
-  return 180+Math.atan2(dLambda, dPhi)*180/Math.PI;
+  return Math.atan2(dLambda, dPhi)*180/Math.PI;
 }
 
 addEventListener('message', handleMessage);
