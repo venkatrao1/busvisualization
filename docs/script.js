@@ -5,9 +5,30 @@ var tooltips = null;
 var map = null;
 
 // TODO: add train icon (and maybe boat)
+const urlSearchParams = new URLSearchParams(window.location.search);
 const ICON_MAPPING = {
   marker: {x: 0, y: 0, width: 128, height: 128, mask: true}
 };
+const THEMES = {
+  "light": { url:"mapbox://styles/venkatrao1/cl5fm4vew001t15o5izxe2jxs" },
+  "dark": { 
+    url:"mapbox://styles/venkatrao1/cl5fmve75002q15l7mhltuikw",
+    routeOpacity: 0.00001
+  },
+  "blueprint": { 
+    url: "mapbox://styles/venkatrao1/cl5g3nn1k001u15qvhowga8ww",
+    forceBusColor: "000000", // I should fix this
+    renderRoutes: false,
+    forceBusSize: 60
+  },
+  "streets": {
+    url: "mapbox://styles/venkatrao1/cl5g6p8f2002k15ldkqcpf25q",
+    renderRoutes: false,
+    forceBusSize: 60
+  }
+};
+const DEFAULT_THEME = "light";
+const CUR_THEME = THEMES[urlSearchParams.get("theme") || DEFAULT_THEME];
 
 function gotJSON(gtfs_json){
   map = new mapboxgl.Map({
@@ -17,7 +38,7 @@ function gotJSON(gtfs_json){
     doubleClickZoom: false,
     dragRotate: false,
     keyboard: false,
-    style: "mapbox://styles/venkatrao1/cl5fm4vew001t15o5izxe2jxs",
+    style: CUR_THEME.url,
     touchPitch: false,
     touchZoomRotate:false,
     zoom:12
@@ -34,12 +55,12 @@ function gotJSON(gtfs_json){
     capRounded: true,
     getColor: getShapeColor,
     parameters: {depthTest:false, blend:false},
-    opacity: 0.2,
+    opacity: CUR_THEME.routeOpacity ||  0.2,
     pickable: false
   });
 
   self.deckGLOverlay = new deck.MapboxOverlay({
-    layers: [ routeLayer ],
+    layers: CUR_THEME.renderRoutes!==false ? [ routeLayer ] : [],
     getTooltip: ({index}) => (index && tooltips && tooltips[index])
   });
 
@@ -48,6 +69,10 @@ function gotJSON(gtfs_json){
     showCompass: false,
     showZoom: true
   }), "top-right");
+
+  if(CUR_THEME.forceBusColor){
+    for(const [route_id, route] of Object.entries(gtfs_json.routes)) route.color=CUR_THEME.forceBusColor;
+  }
 
   if(!self.gtfsworker){
     self.gtfsworker = new Worker("./gtfsworker.js");
@@ -78,10 +103,10 @@ function handleWorkerMessage(msg){
     iconMapping: ICON_MAPPING,
     getIcon: idx => 'marker',
     sizeUnits: "meters",
-    getSize: 40,
+    getSize: CUR_THEME.forceBusSize || 40,
     sizeMinPixels: 10,
   });
-  deckGLOverlay.setProps({layers:[routeLayer, vehicleLayer]});
+  deckGLOverlay.setProps({layers: CUR_THEME.renderRoutes!==false ? [routeLayer, vehicleLayer] : [vehicleLayer]});
 }
 
 $.ajax({
