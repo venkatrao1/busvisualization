@@ -37,7 +37,7 @@ function gotJSON(gtfs_json){
     center: gtfs_json.centroid,
     doubleClickZoom: false,
     dragRotate: false,
-    //keyboard: false,
+    keyboard: false,
     style: CUR_THEME.url,
     touchPitch: false,
     touchZoomRotate:false,
