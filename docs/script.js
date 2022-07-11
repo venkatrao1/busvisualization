@@ -40,7 +40,7 @@ function gotJSON(gtfs_json){
     keyboard: false,
     style: CUR_THEME.url,
     touchPitch: false,
-    touchZoomRotate:false,
+    //touchZoomRotate:false,
     zoom:12
   });
   // use DeckOverlay
